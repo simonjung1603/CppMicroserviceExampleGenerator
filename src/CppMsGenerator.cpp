@@ -49,7 +49,8 @@ int main(int argc, char* argv[])
 	fs::create_directories(project_dir + "/" + service_implementation_dir);
 	fs::create_directories(project_dir + "/" + service_consumer_dir);
 
-	for (auto& p : fs::recursive_directory_iterator("template"))
+  fs::path templatePath = fs::current_path().parent_path().append("template");
+	for (auto& p : fs::recursive_directory_iterator(templatePath))
 	{
 		if (fs::is_regular_file(p))
 		{

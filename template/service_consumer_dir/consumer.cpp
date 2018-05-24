@@ -43,7 +43,7 @@ class @{service_consumer_name}Activator : public BundleActivator
 
   void DoSomething(const std::shared_ptr<@{service_interface_name}>& service) const
   {
-    
+    service->Ping();
   }
 };
 

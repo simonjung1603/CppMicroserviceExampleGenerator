@@ -15,7 +15,7 @@ include(GenerateExportHeader)
 # Technically, this is not a bundle.
 
 # Allow the developer to select if Dynamic or Static libraries are built
-OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 # Set the LIB_TYPE variable to STATIC
 SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
@@ -131,11 +131,6 @@ usFunctionEmbedResources(TARGET @{service_consumer_name}
 set(_srcs
   main.cpp
   )
-
-if(NOT US_BUILD_SHARED_LIBS)
-  # Set up dependencies to resources from static bundles
-  usFunctionGetResourceSource(TARGET @{project_name} OUT _srcs)
-endif()
 
 add_executable(@{project_name} ${_srcs})
 

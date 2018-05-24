@@ -7,9 +7,10 @@ namespace fs = std::experimental::filesystem;
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2)
+	if (argc < 3)
 	{
-		std::cout << "Please provide a name for the interface that you want to provide and consume.\n";
+		std::cout << "USAGE:\n"
+			<< "CppMsGenerator <InterfaceName> <PathToTemplateFolder>\n";
 		return 0;
 	}
 
@@ -23,13 +24,14 @@ int main(int argc, char* argv[])
 	std::string project_name = service_interface_name + "Project";
 	std::string project_dir = service_interface_name + "Project";
 
+	service_interface_name.append("Interface");
+
 	std::string export_header = service_interface_name + "_export";
 	std::transform(export_header.begin(), export_header.end(), export_header.begin(), ::tolower);
 
 	std::string export_macro = service_interface_name + "_EXPORT";
 	std::transform(export_macro.begin(), export_macro.end(), export_macro.begin(), ::toupper);
 
-	service_interface_name.append("Interface");
 
 	std::map<std::string, std::string> replacements
 	{
@@ -48,8 +50,8 @@ int main(int argc, char* argv[])
 	fs::create_directories(project_dir + "/" + service_interface_dir);
 	fs::create_directories(project_dir + "/" + service_implementation_dir);
 	fs::create_directories(project_dir + "/" + service_consumer_dir);
-
-  fs::path templatePath = fs::current_path().parent_path().append("template");
+	
+	fs::path templatePath = fs::path(argv[2]);
 	for (auto& p : fs::recursive_directory_iterator(templatePath))
 	{
 		if (fs::is_regular_file(p))

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<LocalDebuggerEnvironment>PATH=@{cppmicroservices_debug_dll_dir};${CMAKE_CURRENT_BINARY_DIR}/@{service_interface_dir}/Debug/;%PATH%</LocalDebuggerEnvironment>
+		<LocalDebuggerCommandArguments>${CMAKE_CURRENT_BINARY_DIR}/@{service_consumer_dir}/Debug/@{service_consumer_name}.dll ${CMAKE_CURRENT_BINARY_DIR}/@{service_implementation_dir}/Debug/@{service_implementation_name}.dll</LocalDebuggerCommandArguments>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<LocalDebuggerEnvironment>PATH=@{cppmicroservices_release_dll_dir};${CMAKE_CURRENT_BINARY_DIR}/@{service_interface_dir}/Release/;%PATH%</LocalDebuggerEnvironment>
+		<LocalDebuggerCommandArguments>${CMAKE_CURRENT_BINARY_DIR}/@{service_consumer_dir}/Release/@{service_consumer_name}.dll ${CMAKE_CURRENT_BINARY_DIR}/@{service_implementation_dir}/Release/@{service_implementation_name}.dll</LocalDebuggerCommandArguments>
+	</PropertyGroup>
+</Project>

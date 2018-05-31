@@ -1,6 +1,0 @@
-{
-  "bundle.symbolic_name" : "@{service_implementation_dir}",
-  "bundle.activator" : true,
-  "bundle.name" : "@{service_implementation_name}",
-  "bundle.description" : "This bundle is an example"
-}

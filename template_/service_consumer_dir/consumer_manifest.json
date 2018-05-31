@@ -1,4 +1,0 @@
-{
-  "bundle.symbolic_name" : "@{service_consumer_dir}",
-  "bundle.activator" : true
-}

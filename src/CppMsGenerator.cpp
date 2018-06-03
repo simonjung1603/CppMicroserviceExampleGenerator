@@ -1,22 +1,44 @@
 #include <iostream>
-#include <filesystem>
+#include <experimental/filesystem>
 #include <fstream>
 #include <map>
 #include <exception>
-#include "CppMsGenerator.h"
+#include <optionparser.h>
+#include <algorithm>
 
 namespace fs = std::experimental::filesystem;
+#include "CppMsGenerator.h"
 
+enum optionIndex { UNKNOWN, HELP, INTERFACE, TEMPLATE, CPPUS };
+const option::Descriptor usage[] =
+{
+	{UNKNOWN,	0,	"",		"",			option::Arg::None,		"USAGE: CppMicroserviceExampleGenerator [options]\n\n"
+																"Options:" },
+	{HELP,		0,	"h",	"help",		option::Arg::None,		"  --help, -help	\tPrint usage and exit." },
+	{INTERFACE,	0,	"i",	"interface",option::Arg::Optional,	"  --interface, -i \tThe name of the example interface."},
+	{TEMPLATE,	0,	"t",	"template",	option::Arg::Optional,	"  --template, -t \tThe path to the template folder."},
+	{CPPUS,		0,	"c",	"cppus",	option::Arg::Optional,	"  --cppus, -c \tOptional, the path to the cppmicroservices binary dir (containing CppMicroServicesConfig.cmake)."},
+	{0,0,0,0,0,0}
+};
 int main(int argc, char* argv[])
 {
-	if (argc < 3)
-	{
-		std::cout << "USAGE:\n"
-			<< "CppMsGenerator <InterfaceName> <PathToTemplateFolder> [CppMicroservicePath]\n";
+	std::string programName(argv[0]);
+	argc -= (argc > 0); argv += (argc > 0);	// skip program name if present
+
+	option::Stats  stats(usage, argc, argv);
+	std::vector<option::Option> options(stats.options_max);
+	std::vector<option::Option> buffer(stats.buffer_max);
+	option::Parser parse(usage, argc, argv, &options[0], &buffer[0]);
+
+	if (parse.error())
+		return 1;
+
+	if (options[HELP] || argc < 2) {
+		option::printUsage(std::cout, usage);
 		return 0;
 	}
 
-	std::string service_interface_name(argv[1]);
+	std::string service_interface_name(options[INTERFACE].arg);
 	std::string service_interface_dir = service_interface_name + "_dir";
 
 	std::string service_implementation_name = service_interface_name + "Implementation";
@@ -47,14 +69,14 @@ int main(int argc, char* argv[])
 		{ "@{service_consumer_dir}", service_consumer_dir },
 		{ "@{service_interface_export_header}", export_header },
 		{ "@{service_interface_export_macro}", export_macro },
-		{ "@{cppmicroservices_path}", argc < 4 ? "" : argv[3] },
+		{ "@{cppmicroservices_path}", argc < 4 ? "" : options[CPPUS].arg },
 		{ "@{cppmicroservices_debug_dll_dir}", "" },
 		{ "@{cppmicroservices_release_dll_dir}", "" }
 	};
 
-	fs::path templatePath = fs::path(argv[2]);
+	fs::path templatePath = fs::path(options[TEMPLATE].arg);
 	if (templatePath.is_relative()) {
-		fs::path p = fs::path(argv[0]).parent_path().append(argv[2]);
+		fs::path p = fs::path(programName).parent_path() /= (options[TEMPLATE].arg);
 		std::cout << "Relative template path was specified. Trying " << p << '\n';
 		std::cout << p;
 		if (!fs::is_directory(p)) {
@@ -111,31 +133,31 @@ int main(int argc, char* argv[])
 				if (p.path().filename() == "main.cpp" || p.path().filename() == "CMakeLists.txt")
 				{
 					if (p.path().parent_path().filename() == templatePath.filename()) {
-						outFile.append(p.path().filename());
+						outFile /= (p.path().filename());
 					}
 					else {
-						outFile.append(replacements.at(std::string("@{") + p.path().parent_path().filename().string() + std::string("}")));
-						outFile.append(p.path().filename());
+						outFile /= (replacements.at(std::string("@{") + p.path().parent_path().filename().string() + std::string("}")));
+						outFile /= (p.path().filename());
 					}
 				}
 				else if (p.path().filename() == "service.cpp" || p.path().filename() == "service.h")
 				{
-					outFile.append(service_interface_dir);
-					p.path().extension() == ".cpp" ? outFile.append(service_interface_name + ".cpp") : outFile.append(service_interface_name + ".h");
+					outFile /= (service_interface_dir);
+					p.path().extension() == ".cpp" ? outFile /= (service_interface_name + ".cpp") : outFile /= (service_interface_name + ".h");
 				}
 				else if (p.path().filename() == "implementation.cpp" || p.path().filename() == "implementation_manifest.json")
 				{
-					outFile.append(service_implementation_dir);
-					p.path().extension() == ".cpp" ? outFile.append(service_implementation_name + ".cpp") : outFile.append("manifest.json");
+					outFile /= (service_implementation_dir);
+					p.path().extension() == ".cpp" ? outFile /= (service_implementation_name + ".cpp") : outFile.append("manifest.json");
 				}
 				else if (p.path().filename() == "consumer.cpp" || p.path().filename() == "consumer_manifest.json")
 				{
-					outFile.append(service_consumer_dir);
-					p.path().extension() == ".cpp" ? outFile.append(service_consumer_name + ".cpp") : outFile.append("manifest.json");
+					outFile /= (service_consumer_dir);
+					p.path().extension() == ".cpp" ? outFile /= (service_consumer_name + ".cpp") : outFile.append("manifest.json");
 				}
 				else if (p.path().extension() == ".in")
 				{
-					outFile.append(p.path().filename());
+					outFile /= (p.path().filename());
 				}
 				std::cout << outFile << '\n';
 				std::ofstream out(outFile);
@@ -172,7 +194,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void removeTrailingSeparator(std::experimental::filesystem::v1::path &p)
+void removeTrailingSeparator(fs::path &p)
 {
 	while (p.string().find_last_of(p.preferred_separator) == p.string().length() - 1) {
 		p = fs::path(p.string().substr(0, p.string().length() - 1));
